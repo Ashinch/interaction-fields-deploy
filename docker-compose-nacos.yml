@@ -1,0 +1,18 @@
+version: '3'
+services:
+  nacos:
+    image: "nacos/nacos-server:latest"
+    container_name: if-nacos
+    restart: always
+    volumes:
+      #- ./nacos/init.d/custom.properties:/home/nacos/init.d/custom.properties
+      - "${HOST_VOLUME_PATH}/nacos/logs:/home/nacos/logs"
+    environment:
+      - MODE=standalone
+      - JVM_XMS=128m
+      - JVM_XMX=128m
+      - JVM_XMN=32m
+      - JVM_MS=16m
+      - JVM_MMS=40m
+    ports:
+      - "8848:8848"

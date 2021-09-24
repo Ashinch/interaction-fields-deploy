@@ -1,0 +1,83 @@
+version: '3'
+services:
+
+  mysql:
+    image: if-mysql:8.0.20
+    container_name: if-mysql
+    build: ./mysql
+    volumes:
+      - ./mysql/init:/docker-entrypoint-initdb.d/
+      - ${HOST_VOLUME_PATH}/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=276364092
+    ports:
+      - "3306:3306"
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: if-redis:5.0.9
+    container_name: if-redis
+    build: ./redis
+    volumes:
+      - ${HOST_VOLUME_PATH}/redis:/data
+    ports:
+      - "6379:6379"
+    restart: always
+
+  sentinel-dashboard:
+    image: bladex/sentinel-dashboard
+    container_name: if-sentinel
+    volumes:
+      - ${HOST_VOLUME_PATH}/sentinel:/root/logs
+    environment:
+      JAVA_OPTS: "-Dserver.port=8858 -Dcsp.sentinel.dashboard.server=localhost:8858 -Dproject.name=sentinel-dashboard"
+    ports:
+      - "8858:8858"
+    restart: always
+
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: if-zipkin
+    # environment:
+    #   - STORAGE_TYPE=mysql
+    #   - MYSQL_DB=zipkin
+    #   - MYSQL_USER=root
+    #   - MYSQL_PASS=
+    #   - MYSQL_HOST=
+    #   - MYSQL_TCP_PORT=3306
+    ports:
+      - 9411:9411
+
+  rabbitmq:
+    image: "rabbitmq:3.9.5-management-alpine"
+    container_name: if-rabbitmq
+    restart: always
+    volumes:
+      - "${HOST_VOLUME_PATH}/rabbitmq/data:/var/lib/rabbitmq"
+      - "${HOST_VOLUME_PATH}/rabbitmq/logs:/var/log/rabbitmq/log"
+    environment:
+      RABBITMQ_DEFAULT_VHOST: "interaction-fields"
+      RABBITMQ_DEFAULT_USER: "root"
+      RABBITMQ_DEFAULT_PASS: "276364092"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  nacos:
+    image: "nacos/nacos-server:latest"
+    container_name: if-nacos
+    restart: always
+    volumes:
+      #- ./nacos/init.d/custom.properties:/home/nacos/init.d/custom.properties
+      - "${HOST_VOLUME_PATH}/nacos/logs:/home/nacos/logs"
+    environment:
+      - MODE=standalone
+      - JVM_XMS=128m
+      - JVM_XMX=128m
+      - JVM_XMN=32m
+      - JVM_MS=16m
+      - JVM_MMS=40m
+    ports:
+      - "8848:8848"
