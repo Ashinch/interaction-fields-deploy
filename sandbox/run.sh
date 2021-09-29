@@ -60,6 +60,16 @@ case $1 in
         runnerArgs=
         ;;
 
+    # C++
+    6)
+        getBin "g++"
+        mv $2 "$2.c"
+        compiler=$bin
+        compilerArgs="$bin -O2 -w -std=c++11 -lm -o $2 $2.c"
+        runner=$2
+        runnerArgs=
+        ;;
+
     # ...
     *)
         echo "Unsupported language";
