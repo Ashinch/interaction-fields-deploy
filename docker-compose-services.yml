@@ -49,6 +49,7 @@ services:
     #   - MYSQL_TCP_PORT=3306
     ports:
       - 9411:9411
+    restart: always
 
   rabbitmq:
     image: "rabbitmq:3.9.5-management-alpine"
@@ -64,3 +65,10 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+
+  sandbox:
+    image: if-sandbox:latest
+    container_name: if-sandbox
+    tty: true
+    build: ./sandbox
+    restart: always

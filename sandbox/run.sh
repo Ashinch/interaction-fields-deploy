@@ -28,6 +28,9 @@ case $1 in
         compilerArgs="$bin -d . $2.java"
         runner="${bin%/*}/java"
         runnerArgs="$runner -cp $CLASSPATH:${2%/*} -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true Main"
+        maxCpuTime=3000
+        maxRealTime=5000
+        maxMemory=$((1024*1024*1024))
         ;;
 
     # python2
@@ -38,6 +41,9 @@ case $1 in
         compilerArgs=
         runner=$bin
         runnerArgs="$bin $2.py"
+        maxCpuTime=3000
+        maxRealTime=5000
+        maxMemory=$((1024*1024*1024))
         ;;
 
     # python3
@@ -48,6 +54,9 @@ case $1 in
         compilerArgs=
         runner=$bin
         runnerArgs="$bin $2.py"
+        maxCpuTime=3000
+        maxRealTime=5000
+        maxMemory=$((1024*1024*1024))
         ;;
 
     # C
@@ -58,6 +67,9 @@ case $1 in
         compilerArgs="$bin -O2 -w -std=c99 -lm -o $2 $2.c"
         runner=$2
         runnerArgs=
+        maxCpuTime=3000
+        maxRealTime=5000
+        maxMemory=$((1024*1024*1024))
         ;;
 
     # C++
@@ -68,6 +80,9 @@ case $1 in
         compilerArgs="$bin -O2 -w -std=c++11 -lm -o $2 $2.c"
         runner=$2
         runnerArgs=
+        maxCpuTime=3000
+        maxRealTime=5000
+        maxMemory=$((1024*1024*1024))
         ;;
 
     # ...
@@ -83,20 +98,23 @@ if [ ! -z "$3" ]; then
     echo "compilerArgs: $compilerArgs"
     echo "runner: $runner"
     echo "runnerArgs: $runnerArgs"
+    echo "maxCpuTime: $maxCpuTime"
+    echo "maxRealTime: $maxRealTime"
+    echo "maxMemory: $maxMemory"
 fi
 
 # If it needs to compile
 if [ ! -z "$compiler" ]; then
-    compileResult=`/commit/run -b $compiler -p "$compilerArgs"`
+    compileResult=`/commit/run -b $compiler -p "$compilerArgs" -c $maxCpuTime -r $maxRealTime -m $maxMemory`
     if [ $? -ne 0 ]; then
-        echo "Compile error: $compileResult"
-        exit -1
+        echo $compileResult
+        exit
     fi
 fi
 
 # If it needs to run arguments
 if [ ! -z "$runnerArgs" ]; then
-    su commit -c "/commit/run -s -b $runner -p '$runnerArgs'"
+    su commit -c "/commit/run -s -b $runner -p '$runnerArgs' -c $maxCpuTime -r $maxRealTime -m $maxMemory"
 else
-    su commit -c "/commit/run -s -b $runner"
+    su commit -c "/commit/run -s -b $runner -c $maxCpuTime -r $maxRealTime -m $maxMemory"
 fi
